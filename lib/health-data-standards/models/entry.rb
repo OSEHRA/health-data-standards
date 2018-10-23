@@ -129,6 +129,32 @@ class Entry
     false
   end
 
+  def is_input_codes_in_code_set?(input_codes, code_set)
+    input_codes.keys.each do |code_system|
+      all_codes_in_system = code_set.find_all {|set| set['set'] == code_system}
+      all_codes_in_system.each do |codes_in_system|
+        matching_codes = codes_in_system['values'] & input_codes[code_system]
+        if matching_codes.length > 0
+          return true
+        end
+      end
+    end
+    false
+  end
+
+  def is_field_value_codes_in_code_set?(field, code_set)
+    codes = {}
+    case field
+    when "DISCHARGE_STATUS"
+      codes = {dischargeDisposition['codeSystem'] => Array.new(1, dischargeDisposition['code'])} if dischargeDisposition
+    when "PRINCIPAL_DIAGNOSIS"
+      codes = principalDiagnosis['codes'] if principalDiagnosis
+    else
+      return true
+    end
+    return is_input_codes_in_code_set?(codes, code_set)
+  end
+
   # Tries to find a single point in time for this entry. Will first return time if it is present,
   # then fall back to start_time and finally end_time
   def as_point_in_time

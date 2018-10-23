@@ -161,6 +161,8 @@ module HealthDataStandards
                   ttc = entry.transferTo.codes_in_code_set(codes).values.first
                   ttc && !ttc.empty?
                 end
+              elsif data_criteria.field_values
+                  entry.is_in_code_set?(codes) && (is_hqmfr2 || !!entry.negation_ind == data_criteria.negation) && is_field_values_in_entry(data_criteria.field_values, entry)
               else
                 # The !! hack makes sure that negation_ind is a boolean. negations use the same hqmf templates in r2
                 entry.is_in_code_set?(codes) && (is_hqmfr2 || !!entry.negation_ind == data_criteria.negation)
@@ -192,6 +194,20 @@ module HealthDataStandards
         def handle_payer_information(patient)
           patient.insurance_providers
         end
+
+        def is_field_values_in_entry(field_values, entry)
+          field_values.each do |field, value|
+            codes = (value_set_map(patient["bundle_id"])[value.code_list_id] || [])
+            if codes.empty?
+              HealthDataStandards.logger.warn("No codes for FieldValue #{value.code_list_id}")
+            end
+            if !entry.is_field_value_codes_in_code_set?(field, codes)
+              return false
+            end
+          end
+          true
+        end
+
       end
     end
   end
