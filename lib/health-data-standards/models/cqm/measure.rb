@@ -88,7 +88,7 @@ module HealthDataStandards
 
         pipeline << {'$sort' => {"category" => 1}}
         
-        Mongoid.default_client.command(aggregate: 'measures', pipeline: pipeline).documents[0]["result"]
+        Mongoid.default_client.command(aggregate: 'measures', pipeline: pipeline, allowDiskUse:true).documents[0]["result"]
       end
 
 
